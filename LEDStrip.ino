@@ -2,17 +2,24 @@
 
 // includes
 #include "LPD8806.h"
+#include "CWaveFlow.h"
 #include <SPI.h>
+#include <math.h>
 
 // defines
 #define DF_NUM_LEDS 32U
 #define DF_DATA_PIN 2U
 #define DF_CLK_PIN 3U
 #define DF_WAIT 100U
+#define DF_WINDOW_SIZE 9 // ODD NUMBER!
+#define DF_GAUSS_SIGMA 6 * DF_WINDOW_SIZE
+
 //
 LPD8806 ledStrip = LPD8806(DF_NUM_LEDS, DF_DATA_PIN, DF_CLK_PIN);
 
 // forward declarations
+void calcGaussianWindow(unsigned int* auWindow);
+
 
 void setup() {
   ledStrip.begin();
@@ -52,4 +59,12 @@ void loop() {
 }
 
 //function implementations
-
+void calcGaussianWindow(unsigned int* auWindow)
+{
+  int n;
+  for(unsigned int i = 0; i < DF_WINDOW_SIZE; i++)
+  {
+    n = i - ((DF_WINDOW_SIZE +1) / 2);
+    auWindow[i] = 0xEFU * exp(n/(2*DF_GAUSS_SIGMA*DF_GAUSS_SIGMA));
+  }    
+}
