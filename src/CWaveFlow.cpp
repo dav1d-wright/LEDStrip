@@ -4,9 +4,10 @@
 
 
 // function implementations
-CWaveFlow::CWaveFlow(unsigned int* auDelay, LPD8806* alLedStrip, unsigned int auNumLeds,
-                     unsigned int auWindowSize):
-    m_uPosition(auStartingPoint), m_lLedStrip(alLedStrip), m_uNumLeds(auNumLeds), m_uWindowSize(auWindowSize)
+CWaveFlow::CWaveFlow(unsigned int* auShift, LPD8806* alLedStrip, unsigned int auNumLeds,
+                     unsigned int auWindowSize, unsigned int auSigmaGauss, unsigned int auAmplGauss):
+    m_uPosition(auShift), m_lLedStrip(alLedStrip), m_uNumLeds(auNumLeds), m_uWindowSize(auWindowSize),
+    m_uSigmaGauss(auSigmaGauss), m_uAmplGauss(auAmplGauss)
 {
     for(unsigned int i = 0; i < 3; i++)
     {
@@ -28,7 +29,25 @@ CWaveFlow::~CWaveFlow()
 
 void CWaveFlow::calcIntensity()
 {
-    // TODO
+    int n;
+    for(unsigned int j = 0; i < m_uWindowSize; i++)
+    {
+        n = i - ((m_uWindowSize +1) / 2);
+        m_uIntensity[0][j] = m_uAmplGauss * exp(n/(2*m_uSigmaGauss*m_uSigmaGauss));
+        m_uIntensity[1][j] = m_uAmplGauss * exp(n/(2*m_uSigmaGauss*m_uSigmaGauss));
+        m_uIntensity[2][j] = m_uAmplGauss * exp(n/(2*m_uSigmaGauss*m_uSigmaGauss));
+    }
+}
+
+void CWaveFlow::applyShift()
+{
+    for(unsigned int i = 0; i < 3, i++)
+    {
+        for (unsigned int j = 2 * auWindowSize + m_uNumLeds - 1; j >= 0 ; j--)
+        {
+            m_uIntensity[i][j] = m_uIntensity[i][j-m_uPosition[i]];
+        }
+    }
 }
 
 void CWaveFlow::constrainLedStrip()
@@ -39,7 +58,7 @@ void CWaveFlow::constrainLedStrip()
         {
             if((j > auWindowSize) && (j < m_uNumLeds))
             {
-                m_uLedStripIntensity[i][j - auWindowSize - 1] = m_uLedIntensity[i][j];
+                m_uLedStripIntensity[i][j - auWindowSize - 1] = m_uIntensity[i][j];
             }
         }
     }
@@ -53,7 +72,7 @@ void CWaveFlow::moveIntensity()
         {
             for(unsigned int jFwd = 2 * auWindowSize + m_uNumLeds -1; j >= 0; j--)
             {
-                m_untensity[i][jFwd] = m_uLedIntensity[i][jFwd - 1];
+                m_untensity[i][jFwd] = m_uIntensity[i][jFwd - 1];
             }
             m_uPosition++;
         }
@@ -66,6 +85,7 @@ void CWaveFlow::moveIntensity()
             m_uPosition--;
         }
     }
+    this->constrainLedStrip();
     m_lLedStrip->show();
 }
 
