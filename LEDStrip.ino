@@ -16,19 +16,16 @@
 #define DF_GAUSS_AMPLITUDE 0xEFU
 
 
-//
+// objects and variables
 LPD8806 ledStrip = LPD8806(DF_NUM_LEDS, DF_DATA_PIN, DF_CLK_PIN);
-
-// forward declarations
-void calcGaussianWindow(unsigned int* auWindow);
+unsigned int uShift[3] = {0, 10, 20};
+CWaveFlow cWaveFlow(uShift, &ledStrip, DF_NUM_LEDS, DF_WINDOW_SIZE, DF_GAUSS_SIGMA, DF_GAUSS_AMPLITUDE);
 
 
 void setup() {
   ledStrip.begin();
   Serial.begin(9600);
   ledStrip.show();
-    unsigned int uShift[3] = {10, 10, 10};
-    CWaveFlow cWaveFlow(uShift, &ledStrip, DF_NUM_LEDS, DF_WINDOW_SIZE, DF_GAUSS_SIGMA, DF_GAUSS_AMPLITUDE);
     cWaveFlow.calcIntensity();
     cWaveFlow.applyShift();
 }
@@ -62,16 +59,6 @@ void loop() {
 //     
 //    delay(DF_WAIT);
 //  }
-    
-}
-
-//function implementations
-void calcGaussianWindow(unsigned int* auWindow)
-{
-  int n;
-  for(unsigned int i = 0; i < DF_WINDOW_SIZE; i++)
-  {
-    n = i - ((DF_WINDOW_SIZE +1) / 2);
-    auWindow[i] = 0xEFU * exp(n/(2*DF_GAUSS_SIGMA*DF_GAUSS_SIGMA));
-  }    
+  cWaveFlow.moveIntensity();
+  
 }

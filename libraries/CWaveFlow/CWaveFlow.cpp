@@ -1,10 +1,10 @@
 // includes
 #include "LPD8806.h"
-
+#include "CWaveFlow.h"
 
 
 // function implementations
-CWaveFlow::CWaveFlow(unsigned int* auShift, LPD8806* alLedStrip, unsigned int auNumLeds,
+CWaveFlow::CWaveFlow(unsigned int auShift[3], LPD8806* alLedStrip, unsigned int auNumLeds,
                      unsigned int auWindowSize, unsigned int auSigmaGauss, unsigned int auAmplGauss):
     m_uPosition(auShift), m_lLedStrip(alLedStrip), m_uNumLeds(auNumLeds), m_uWindowSize(auWindowSize),
     m_uSigmaGauss(auSigmaGauss), m_uAmplGauss(auAmplGauss)
@@ -27,6 +27,8 @@ CWaveFlow::~CWaveFlow()
     delete[] m_uLedStripIntensity
 }
 
+
+//calculate gaussian window
 void CWaveFlow::calcIntensity()
 {
     int n;
@@ -39,6 +41,7 @@ void CWaveFlow::calcIntensity()
     }
 }
 
+//initial shift between r, g, b
 void CWaveFlow::applyShift()
 {
     for(unsigned int i = 0; i < 3, i++)
@@ -72,7 +75,7 @@ void CWaveFlow::moveIntensity()
         {
             for(unsigned int jFwd = 2 * auWindowSize + m_uNumLeds -1; j >= 0; j--)
             {
-                m_untensity[i][jFwd] = m_uIntensity[i][jFwd - 1];
+                m_uIntensity[i][jFwd] = m_uIntensity[i][jFwd - 1];
             }
             m_uPosition++;
         }
@@ -80,7 +83,7 @@ void CWaveFlow::moveIntensity()
         {
             for(unsigned int jFwd = 0; j <  2 * auWindowSize + m_uNumLeds -1; j++)
             {
-                m_uLedIntensity[i][jFwd - 1] = m_uLedIntensity[i][jFwd];
+                m_uLedStripIntensity[i][jFwd - 1] = m_uLedStripIntensity[i][jFwd];
             }
             m_uPosition--;
         }
@@ -92,5 +95,8 @@ void CWaveFlow::moveIntensity()
 
 void CWaveFlow::show()
 {
-    // TODO (wrapper function for LPD8806::show())
+    for (unsigned int i = 0; i < m_uNumLeds; i++) {
+        m_lLedStrip->setPixelColor(i, m_uLedStripIntensity[0][i], m_uLedStripIntensity[1][i], m_uLedStripIntensity[2][i]);
+    }
+    m_lLedStrip->show();
 }
