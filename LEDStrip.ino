@@ -19,15 +19,21 @@
 // objects and variables
 LPD8806 ledStrip = LPD8806(DF_NUM_LEDS, DF_DATA_PIN, DF_CLK_PIN);
 unsigned int uShift[3] = {0, 10, 20};
-CWaveFlow cWaveFlow(uShift, &ledStrip, DF_NUM_LEDS, DF_WINDOW_SIZE, DF_GAUSS_SIGMA, DF_GAUSS_AMPLITUDE);
-
+//CWaveFlow cWaveFlow(uShift, &ledStrip, DF_NUM_LEDS, DF_WINDOW_SIZE, DF_GAUSS_SIGMA, DF_GAUSS_AMPLITUDE);
+CWaveFlow cWaveFlow;
 
 void setup() {
   ledStrip.begin();
   Serial.begin(9600);
   ledStrip.show();
-    cWaveFlow.calcIntensity();
-    cWaveFlow.applyShift();
+  cWaveFlow.setShift(uShift);
+  cWaveFlow.setLedStrip(&ledStrip);
+  cWaveFlow.setNumLeds(DF_NUM_LEDS);
+  cWaveFlow.setWindowSize(DF_WINDOW_SIZE);
+  cWaveFlow.setSigmaGauss(DF_GAUSS_SIGMA);
+  cWaveFlow.setAmplGauss(DF_GAUSS_AMPLITUDE);
+  cWaveFlow.calcIntensity();
+  cWaveFlow.applyShift();
 }
 
 void loop() {
@@ -59,6 +65,8 @@ void loop() {
 //     
 //    delay(DF_WAIT);
 //  }
-  cWaveFlow.moveIntensity();
+//  cWaveFlow.moveIntensity();
+  cWaveFlow.show();
+  delay(DF_WAIT);
   
 }
