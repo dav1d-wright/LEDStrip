@@ -11,9 +11,9 @@
 #define DF_DATA_PIN 2U
 #define DF_CLK_PIN 3U
 #define DF_WAIT 100U
-#define DF_WINDOW_SIZE 9 // ODD NUMBER!
+#define DF_WINDOW_SIZE 9L // ODD NUMBER!
 #define DF_GAUSS_SIGMA 6 * DF_WINDOW_SIZE
-#define DF_GAUSS_AMPLITUDE 0xEFU
+#define DF_GAUSS_AMPLITUDE 0xEFL
 
 
 // objects and variables

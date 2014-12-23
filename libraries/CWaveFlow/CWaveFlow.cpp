@@ -24,8 +24,8 @@
 CWaveFlow::CWaveFlow()
 {
     m_uWindowSize = 1;
-    m_uSigmaGauss = 1;
-    m_uAmplGauss = 0x0F;
+    m_iSigmaGauss = 1;
+    m_iAmplGauss = 0xEF;
     m_lLedStrip = 0;
     
     for(unsigned int i = 0; i < 3; i++)
@@ -41,8 +41,8 @@ CWaveFlow::CWaveFlow()
 
 CWaveFlow::~CWaveFlow()
 {
-    //delete[] m_uIntensity;
-    //delete[] m_uLedStripIntensity
+    delete[] m_uIntensity;
+    delete[] m_uLedStripIntensity;
 }
 
 void CWaveFlow::setShift(unsigned int* auShift)
@@ -67,14 +67,14 @@ void CWaveFlow::setWindowSize(unsigned int auWindowSize)
     m_uWindowSize = auWindowSize;
 }
 
-void CWaveFlow::setSigmaGauss(unsigned int auSigmaGauss)
+void CWaveFlow::setSigmaGauss(int aiSigmaGauss)
 {
-    m_uSigmaGauss = auSigmaGauss;
+    m_iSigmaGauss = aiSigmaGauss;
 }
 
-void CWaveFlow::setAmplGauss(unsigned int auAmplGauss)
+void CWaveFlow::setAmplGauss(int aiAmplGauss)
 {
-    m_uAmplGauss = auAmplGauss;
+    m_iAmplGauss = aiAmplGauss;
 }
 
 //calculate gaussian window
@@ -92,14 +92,14 @@ void CWaveFlow::calcIntensity()
     }
     this->constrainLedStrip();
     int n;
-    for(unsigned int i = 0; i < m_uWindowSize; i++)
+    for(int i = 0; i < m_uWindowSize; i++)
     {
-        n = i - ((m_uWindowSize +1) / 2);
-        m_uIntensity[0][i] = m_uAmplGauss * exp(n/(2*m_uSigmaGauss*m_uSigmaGauss));
-        m_uIntensity[1][i] = m_uAmplGauss * exp(n/(2*m_uSigmaGauss*m_uSigmaGauss));
-        m_uIntensity[2][i] = m_uAmplGauss * exp(n/(2*m_uSigmaGauss*m_uSigmaGauss));
+        n = i - (m_uWindowSize +1);
+        m_uIntensity[0][i] = m_iAmplGauss * exp(-n/(2*m_iSigmaGauss*m_iSigmaGauss));
+        m_uIntensity[1][i] = m_iAmplGauss * exp(-n/(2*m_iSigmaGauss*m_iSigmaGauss));
+        m_uIntensity[2][i] = m_iAmplGauss * exp(-n/(2*m_iSigmaGauss*m_iSigmaGauss));
     }
-
+    this->constrainLedStrip();
     this->show();
 }
 
