@@ -32,10 +32,11 @@ CWaveFlow::CWaveFlow()
         m_uIntensity[i] = 0;
         m_uLedStripIntensity[i] = 0;;
     }
-    m_eWFDir[0] = eWaveFlowDirFwd;
-    m_eWFDir[1] = eWaveFlowDirBwd;
+    m_eWFDir[0] = eWaveFlowDirBwd;
+    m_eWFDir[1] = eWaveFlowDirFwd;
     m_eWFDir[2] = eWaveFlowDirFwd;
-
+    m_uAmbientRunsReset = 0;
+    m_uAmbientRuns = 0;
     this->constrainLedStrip();
 //    this->show();
 }
@@ -84,35 +85,72 @@ void CWaveFlow::setAmplitude(uint8_t auAmplitude)
     m_uAmplitude = auAmplitude;
 }
 
+void CWaveFlow::setMode(EMode aeMod)
+{
+    m_eMod = aeMod;
+}
+
+void CWaveFlow::setAmbientRuns(uint8_t auRuns)
+{
+    m_uAmbientRunsReset = auRuns;
+}
 //calculate gaussian window
 void CWaveFlow::calcIntensity()
 {
-    m_uLengthIntensity = m_uWindowSize + m_uNumLeds;
-    m_uOverlap = (m_uLengthIntensity - m_uNumLeds)/2;
-    
-    for(unsigned int i = 0; i < 3; i++)
-    {
-        m_uIntensity[i] = new(unsigned int [m_uLengthIntensity]);
-        m_uLedStripIntensity[i] = new(unsigned int [m_uNumLeds]);
-        for(unsigned int j = 0; j < m_uLengthIntensity - 1; j++)
+    if (m_eMod == eModFlow) {
+        m_uLengthIntensity = (2 * m_uWindowSize) + m_uNumLeds;
+        m_uOverlap = (m_uLengthIntensity - m_uNumLeds)/2;
+        
+        for(unsigned int i = 0; i < 3; i++)
         {
-            m_uIntensity[i][j] = 0U;
+            m_uIntensity[i] = new(unsigned int [m_uLengthIntensity]);
+            m_uLedStripIntensity[i] = new(unsigned int [m_uNumLeds]);
+            for(unsigned int j = 0; j < m_uLengthIntensity - 1; j++)
+            {
+                m_uIntensity[i][j] = 0U;
+            }
+        }
+        for(unsigned int i = 0; i <= (m_uWindowSize + 1)/2; i++)
+        {
+            m_uIntensity[0][i] = 2 * i * (m_uAmplitude / (m_uWindowSize + 1));
+            m_uIntensity[1][i] = m_uIntensity[0][i];
+            m_uIntensity[2][i] = m_uIntensity[0][i];
+        }
+
+        for(unsigned int i = (m_uWindowSize + 1)/2 + 1; i < m_uWindowSize; i++)
+        {
+            
+            m_uIntensity[0][i] = m_uAmplitude - (2 * m_uAmplitude / (m_uWindowSize + 1)) * (i - ((m_uWindowSize + 1) / 2));
+            m_uIntensity[1][i] = m_uIntensity[0][i];
+            m_uIntensity[2][i] = m_uIntensity[0][i];
         }
     }
-    this->constrainLedStrip();
-    for(unsigned int i = 0; i <= (m_uWindowSize + 1)/2; i++)
+    else if (m_eMod == eModAmbient)
     {
-        m_uIntensity[0][i] = 2 * i * (m_uAmplitude / (m_uWindowSize + 1));
-        m_uIntensity[1][i] = m_uIntensity[0][i];
-        m_uIntensity[2][i] = m_uIntensity[0][i];
-    }
-
-    for(unsigned int i = (m_uWindowSize + 1)/2 + 1; i < m_uWindowSize; i++)
-    {
-        
-        m_uIntensity[0][i] = m_uAmplitude - (2 * m_uAmplitude / (m_uWindowSize + 1)) * (i - ((m_uWindowSize + 1) / 2));
-        m_uIntensity[1][i] = m_uIntensity[0][i];
-        m_uIntensity[2][i] = m_uIntensity[0][i];
+        if (m_uAmbientRuns == 0)
+        {
+            m_uAmbientRuns = m_uAmbientRunsReset;
+            for(uint8_t i = 0; i < m_uNumLeds; i++)
+            {
+                m_uLedStripIntensity[0][i] = 0;
+                m_uLedStripIntensity[1][i] = 0;
+                m_uLedStripIntensity[2][i] = 0;
+            }
+            randomSeed(analogRead(0));
+            m_uAmbientCol = random(1000)%3;
+        }
+        else
+        {
+            for (uint8_t i = 0; i < m_uNumLeds; i++) {
+                if (m_uAmbientRuns > (m_uAmbientRunsReset / 2))
+                {
+                    m_uLedStripIntensity[m_uAmbientCol][i] = (0xFF/m_uAmbientRunsReset) * (m_uAmbientRunsReset - m_uAmbientRuns);
+                } else {
+                    m_uLedStripIntensity[m_uAmbientCol][i] = 0xFF + (0xFF/m_uAmbientRunsReset) * (m_uAmbientRuns - 1 - (m_uAmbientRunsReset / 2));
+                }
+            }
+            m_uAmbientRuns--;
+        }
     }
 }
 
@@ -146,7 +184,7 @@ void CWaveFlow::constrainLedStrip()
     {
         for(unsigned int j = 0; j < m_uLengthIntensity - 1; j++)
         {
-            if((j >= m_uOverlap) && (j <= (m_uNumLeds + m_uOverlap + 1)))
+            if((j > m_uOverlap) && (j < (m_uLengthIntensity - m_uOverlap)))
             {
                 m_uLedStripIntensity[i][j - m_uOverlap - 1] = m_uIntensity[i][j];
             }
@@ -158,53 +196,59 @@ void CWaveFlow::constrainLedStrip()
 
 void CWaveFlow::moveIntensity()
 {
-    for(unsigned int i = 0; i < 3; i++)
-    {
-        
-        if (m_uSkip[i] > 0)
+    if (m_eMod == eModFlow) {
+        for(unsigned int i = 0; i < 3; i++)
         {
-            m_uSkip[i]--;
-        }
-        else
-        {
-            m_uSkip[i] = m_uSkipReset[i];
             
-                if(m_eWFDir[i] == eWaveFlowDirFwd)
-                {
-                    for(unsigned int jFwd = m_uLengthIntensity - 1; jFwd > 0; jFwd--)
+            if (m_uSkip[i] > 0)
+            {
+                m_uSkip[i]--;
+            }
+            else
+            {
+                m_uSkip[i] = m_uSkipReset[i];
+                
+                    if(m_eWFDir[i] == eWaveFlowDirFwd)
                     {
-                        if(jFwd == 1)
+                        for(unsigned int jFwd = m_uLengthIntensity - 1; jFwd > 0; jFwd--)
                         {
-                            m_uIntensity[i][0] = 0;
+                            if(jFwd == 1)
+                            {
+                                m_uIntensity[i][0] = 0;
+                            }
+                                m_uIntensity[i][jFwd] = m_uIntensity[i][jFwd - 1];
                         }
-                            m_uIntensity[i][jFwd] = m_uIntensity[i][jFwd - 1];
-                    }
-                    ++(m_uPosition[i]);
-                    if(m_uPosition[i] == m_uLengthIntensity - 2 * m_uOverlap - 1)
-                    {
-                        m_eWFDir[i] = eWaveFlowDirBwd;
-                    }
-                }
-                else
-                {
-                    for(unsigned int jBwd = 0; jBwd <  m_uLengthIntensity - 1; jBwd++)
-                    {
-                        if(jBwd == m_uLengthIntensity - 2)
+                        ++(m_uPosition[i]);
+                        if(m_uPosition[i] == m_uLengthIntensity -  m_uOverlap - 1)
                         {
-                            m_uIntensity[i][m_uLengthIntensity - 1] = 0;
+                            m_eWFDir[i] = eWaveFlowDirBwd;
                         }
-                        m_uIntensity[i][jBwd] = m_uIntensity[i][jBwd + 1];
+                    }
+                    else
+                    {
+                        for(unsigned int jBwd = 0; jBwd <  m_uLengthIntensity - 1; jBwd++)
+                        {
+                            if(jBwd == m_uLengthIntensity - 2)
+                            {
+                                m_uIntensity[i][m_uLengthIntensity - 1] = 0;
+                            }
+                            m_uIntensity[i][jBwd] = m_uIntensity[i][jBwd + 1];
                     
-                    }
-                    --(m_uPosition[i]);
-                    if(m_uPosition[i] == 0)
-                    {
-                        m_eWFDir[i] = eWaveFlowDirFwd;
+                        }
+                        --(m_uPosition[i]);
+                        if(m_uPosition[i] == 0)
+                        {
+                            m_eWFDir[i] = eWaveFlowDirFwd;
+                        }
                     }
                 }
             }
-        }
-    this->constrainLedStrip();
+        this->constrainLedStrip();
+    }
+    else if (m_eMod == eModAmbient)
+    {
+        this->calcIntensity();
+    }
     this->show();
 }
 

@@ -5,6 +5,11 @@ typedef enum {
     eWaveFlowDirBwd = 1
 } EWaveFlowDirection;
 
+typedef enum {
+    eModFlow = 0,
+    eModAmbient = 1
+} EMode;
+
 class CWaveFlow
 {
   public:
@@ -18,6 +23,8 @@ class CWaveFlow
     void setNumLeds(unsigned int auNumLeds);
     void setWindowSize(unsigned int auWindowSize);
     void setAmplitude(uint8_t auAmplGauss);
+    void setMode(EMode aeMod);
+    void setAmbientRuns(uint8_t auRuns);
     void setSkip(unsigned int* auSkip);
     void calcIntensity();
     void constrainLedStrip();
@@ -33,9 +40,13 @@ class CWaveFlow
     unsigned int m_uSkipReset[3];
     unsigned int m_uOverlap;
     unsigned int m_uNumLeds;
+    unsigned int m_uAmbientRuns;
+    unsigned int m_uAmbientRunsReset;
+    unsigned int m_uAmbientCol;
     uint8_t m_uWindowSize;
     unsigned int m_uAmplitude;
     unsigned int m_uLengthIntensity;
     EWaveFlowDirection m_eWFDir[3];
+    EMode m_eMod;
     LPD8806* m_lLedStrip;
 };
