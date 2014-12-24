@@ -17,9 +17,8 @@ class CWaveFlow
     void setLedStrip(LPD8806* alLedStrip);
     void setNumLeds(unsigned int auNumLeds);
     void setWindowSize(unsigned int auWindowSize);
-    void setSigmaGauss(int aiSigmaGauss);
-    void setAmplGauss(int aiAmplGauss);
-    //calculate gaussian window
+    void setAmplitude(unsigned int auAmplGauss);
+    void setSkip(unsigned int* auSkip);
     void calcIntensity();
     void constrainLedStrip();
     void moveIntensity();
@@ -30,10 +29,12 @@ class CWaveFlow
     unsigned int* m_uIntensity[3];
     unsigned int* m_uLedStripIntensity[3];
     unsigned int m_uPosition[3];
+    unsigned int m_uSkip[3];
+    unsigned int m_uSkipReset[3];
     unsigned int m_uNumLeds;
     unsigned int m_uWindowSize;
-    int m_iSigmaGauss;
-    int m_iAmplGauss;
+    unsigned int m_uAmplitude;
+    unsigned int m_uLengthIntensity;
     EWaveFlowDirection m_eWFDir[3];
     LPD8806* m_lLedStrip;
 };
