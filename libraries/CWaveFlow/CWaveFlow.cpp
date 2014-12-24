@@ -99,6 +99,7 @@ void CWaveFlow::calcIntensity()
             m_uIntensity[i][j] = 0U;
         }
     }
+    this->constrainLedStrip();
     for(unsigned int i = 0; i <= (m_uWindowSize + 1)/2; i++)
     {
         m_uIntensity[0][i] = 2 * i * (m_uAmplitude / (m_uWindowSize + 1));
@@ -145,7 +146,7 @@ void CWaveFlow::constrainLedStrip()
     {
         for(unsigned int j = 0; j < m_uLengthIntensity - 1; j++)
         {
-            if((j > m_uOverlap) && (j < (m_uLengthIntensity - m_uOverlap)))
+            if((j >= m_uOverlap) && (j <= (m_uNumLeds + m_uOverlap + 1)))
             {
                 m_uLedStripIntensity[i][j - m_uOverlap - 1] = m_uIntensity[i][j];
             }
