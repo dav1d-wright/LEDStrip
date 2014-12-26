@@ -32,6 +32,7 @@ class CWaveFlow
     void show();
     //initial shift between r, g, b
     void applyShift();
+    
   private:
     unsigned int* m_uIntensity[3];
     unsigned int* m_uLedStripIntensity[3];

@@ -98,7 +98,7 @@ void CWaveFlow::setAmbientRuns(uint8_t auRuns)
 void CWaveFlow::calcIntensity()
 {
     if (m_eMod == eModFlow) {
-        m_uLengthIntensity = (2 * m_uWindowSize) + m_uNumLeds;
+        m_uLengthIntensity = m_uWindowSize + m_uNumLeds;
         m_uOverlap = (m_uLengthIntensity - m_uNumLeds)/2;
         
         for(unsigned int i = 0; i < 3; i++)
@@ -256,8 +256,8 @@ void CWaveFlow::moveIntensity()
 void CWaveFlow::show()
 {
     for (unsigned int i = 0; i < m_uNumLeds; i++) {
-        m_lLedStrip->setPixelColor(i, m_uLedStripIntensity[0][i], m_uLedStripIntensity[1][i], m_uLedStripIntensity[2][i]);
-//        m_lLedStrip->setPixelColor(i, m_uLedStripIntensity[0][i], 0, 0);
+//        m_lLedStrip->setPixelColor(i, m_uLedStripIntensity[0][i], m_uLedStripIntensity[1][i], m_uLedStripIntensity[2][i]);
+        m_lLedStrip->setPixelColor(i, 0, m_uLedStripIntensity[1][i], 0);
     }
     m_lLedStrip->show();
 }
